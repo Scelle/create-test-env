@@ -1,5 +1,5 @@
 - name: Start Minikube cluster
-  shell: minikube start --driver=docker
+  shell: minikube start --driver=docker --force
   #shell: minikube start --driver=docker --force
   args:
     creates: /home/{{ ansible_user }}/.minikube
