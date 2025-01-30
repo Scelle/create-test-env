@@ -5,11 +5,8 @@
     creates: /home/{{ ansible_user }}/.minikube
 
 - name: Wait for Minikube to be ready
-  shell: minikube status
-  register: minikube_status
-  until: "'minikube: Running' in minikube_status.stdout"
-  retries: 30
-  delay: 10
+  wait_for:
+    timeout: 240  # 4 minutes
 
 # - name: Set up Docker environment for Minikube
 #   shell: eval $(minikube docker-env)
