@@ -1,13 +1,13 @@
 - name: Start Minikube cluster
-  shell: minikube start --driver=docker --force
+  shell: minikube start --driver=docker
   #shell: minikube start --driver=docker --force
   args:
     creates: /home/{{ ansible_user }}/.minikube
 
-# - name: Set up Docker environment for Minikube
-#   shell: eval $(minikube docker-env)
-#   args:
-#     executable: /bin/bash
+- name: Set up Docker environment for Minikube
+  shell: eval $(minikube docker-env)
+  args:
+    executable: /bin/bash
 
 - name: Pull application Docker image
   shell: docker pull busybox
