@@ -4,10 +4,6 @@
   args:
     creates: /home/{{ ansible_user }}/.minikube
 
-- name: Wait for Minikube to be ready
-  wait_for:
-    timeout: 240  # 4 minutes
-
 # - name: Set up Docker environment for Minikube
 #   shell: eval $(minikube docker-env)
 #   args:
