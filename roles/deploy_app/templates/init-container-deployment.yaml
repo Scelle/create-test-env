@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: init-container-example
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: init-container-example
+  template:
+    metadata:
+      labels:
+        app: init-container-example
+    spec:
+      containers:
+      - name: main-container
+        image: busybox
+        command: ['sh', '-c', 'echo The app is running! && sleep 3600']
+      initContainers:
+      - name: init-container
+        image: busybox
+        command: ['sh', '-c', 'echo Init container is running! && sleep 10']

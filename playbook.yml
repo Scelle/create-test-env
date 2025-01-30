@@ -1,0 +1,5 @@
+- hosts: localhost
+  become: true
+  roles:
+    - install_tools
+    - deploy_app
