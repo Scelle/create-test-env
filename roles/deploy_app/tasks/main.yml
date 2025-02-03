@@ -1,21 +1,17 @@
 - name: Start Minikube cluster
-  shell: minikube start --driver=docker --force
+  shell: minikube start --driver=docker
+  #shell: minikube start --driver=docker --force
   args:
     creates: /home/{{ ansible_user }}/.minikube
 
 - name: Wait for Minikube to be ready
-  pause:
-    seconds: 180
+  wait_for:
+    timeout: 180  # 3 minutes
 
-- name: Check Minikube status
-  shell: minikube status
-  register: minikube_status
-  until: "'Running' in minikube_status.stdout"
-  retries: 5
-  delay: 10
-
-- name: Set kubectl context to Minikube
-  shell: kubectl config use-context minikube
+- name: Set up Docker environment for Minikube
+  shell: eval $(minikube docker-env)
+  args:
+    executable: /bin/bash
 
 - name: Pull application Docker image
   shell: docker pull busybox
@@ -26,6 +22,6 @@
     dest: /home/{{ ansible_user }}/init-container-deployment.yaml
 
 - name: Apply deployment configuration
-  shell: kubectl apply -f /home/{{ ansible_user }}/init-container-deployment.yaml --validate=false
+  shell: kubectl apply -f /home/{{ ansible_user }}/init-container-deployment.yaml
   args:
     executable: /bin/bash
