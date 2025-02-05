@@ -10,7 +10,7 @@
   become: true
 
 - name: Apply docker group changes
-  shell: newgrp docker
+  command: newgrp docker
 
 - name: Install kubectl
   shell: |
