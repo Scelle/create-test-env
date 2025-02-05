@@ -13,6 +13,6 @@
     dest: /home/{{ ansible_user }}/init-container-deployment.yaml
 
 - name: Apply deployment configuration
-  shell: kubectl apply -f /home/{{ ansible_user }}/init-container-deployment.yaml
+  shell: kubectl apply -f /home/{{ ansible_user }}/init-container-deployment.yaml --validate=false
   args:
     executable: /bin/bash
