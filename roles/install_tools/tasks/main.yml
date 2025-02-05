@@ -1,3 +1,4 @@
+---
 - name: Install prerequisites
   tasks:
     - name: Install Docker
@@ -6,6 +7,7 @@
         sh get-docker.sh
       args:
         creates: /usr/bin/docker
+      become: true
 
     - name: Add user to docker group
       command: usermod -aG docker {{ ansible_user }}
@@ -13,6 +15,7 @@
 
     - name: Apply docker group changes
       shell: newgrp docker
+      become: true
 
     - name: Install kubectl
       shell: |
@@ -20,6 +23,7 @@
         sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
       args:
         creates: /usr/local/bin/kubectl
+      become: true
 
     - name: Install Minikube
       shell: |
@@ -28,9 +32,11 @@
         rm minikube-linux-amd64
       args:
         creates: /usr/local/bin/minikube
+      become: true
 
     - name: Install Helm
       shell: |
         curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
       args:
         creates: /usr/local/bin/helm
+      become: true

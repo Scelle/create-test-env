@@ -1,5 +1,6 @@
+---
 - name: Main playbook
   hosts: localhost
-    roles:
-      - install_tools
-      - deploy_app
+  roles:
+    - install_tools
+    - deploy_app
