@@ -1,36 +1,18 @@
-- name: List Minikube profiles
-  shell: minikube profile list
-  register: minikube_profiles
-
-- name: Debug Minikube profiles
-  debug:
-    var: minikube_profiles.stdout_lines
-
 - name: Start Minikube cluster
   shell: minikube start --driver=docker
   become: no
   args:
     creates: /home/{{ ansible_user }}/.minikube
 
-- name: Check Minikube status
-  shell: minikube status
-  register: minikube_status
-  failed_when: "'Running' not in minikube_status.stdout"
+# - name: Pull application Docker image
+#   shell: docker pull busybox
 
-- name: Check Kubernetes cluster status
-  shell: kubectl cluster-info
-  register: cluster_info
-  failed_when: "'running' not in cluster_info.stdout"
+# - name: Deploy application deployment
+#   copy:
+#     src: "{{ playbook_dir }}/roles/deploy_app/templates/init-container-deployment.yaml"
+#     dest: /home/{{ ansible_user }}/init-container-deployment.yaml
 
-- name: Pull application Docker image
-  shell: docker pull busybox
-
-- name: Deploy application deployment
-  copy:
-    src: "{{ playbook_dir }}/roles/deploy_app/templates/init-container-deployment.yaml"
-    dest: /home/{{ ansible_user }}/init-container-deployment.yaml
-
-- name: Apply deployment configuration
-  shell: kubectl apply -f /home/{{ ansible_user }}/init-container-deployment.yaml --validate=false
-  args:
-    executable: /bin/bash
+# - name: Apply deployment configuration
+#   shell: kubectl apply -f /home/{{ ansible_user }}/init-container-deployment.yaml
+#   args:
+#     executable: /bin/bash
