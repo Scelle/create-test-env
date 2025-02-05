@@ -1,3 +1,11 @@
+- name: List Minikube profiles
+  shell: minikube profile list
+  register: minikube_profiles
+
+- name: Debug Minikube profiles
+  debug:
+    var: minikube_profiles.stdout_lines
+
 - name: Start Minikube cluster
   shell: minikube start --driver=docker
   become: no
