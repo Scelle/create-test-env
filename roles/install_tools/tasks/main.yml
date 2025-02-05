@@ -1,74 +1,26 @@
----
-- hosts: localhost
+- name: Install Docker
+  shell: |
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sh get-docker.sh
+
+- name: Add user to docker group
+  command: usermod -aG docker {{ ansible_user }}
   become: true
-  tasks:
-    - name: Install Docker
-      shell: |
-        curl -fsSL https://get.docker.com -o get-docker.sh
-        sh get-docker.sh
-      args:
-        creates: /usr/bin/docker
 
-    - name: Add user to docker group
-      user:
-        name: "{{ ansible_user }}"
-        groups: docker
-        append: yes
+- name: Apply docker group changes
+  shell: newgrp docker
 
-    - name: Apply docker group changes
-      meta: flush_handlers
+- name: Install kubectl
+  shell: |
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
-    - name: Install kubectl
-      shell: |
-        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-        install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-      args:
-        creates: /usr/local/bin/kubectl
+- name: Install Minikube
+  shell: |
+    curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+    sudo install minikube-linux-amd64 /usr/local/bin/minikube
+    rm minikube-linux-amd64
 
-    - name: Install Minikube
-      shell: |
-        curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-        install minikube-linux-amd64 /usr/local/bin/minikube
-        rm minikube-linux-amd64
-      args:
-        creates: /usr/local/bin/minikube
-
-    - name: Install Helm
-      shell: |
-        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-      args:
-        creates: /usr/local/bin/helm
-
-    - name: Start Minikube cluster
-      command: minikube start --driver=docker
-      register: minikube_start_output
-      args:
-        creates: /home/{{ ansible_user }}/.minikube
-
-    - name: Check Minikube status
-      command: minikube status
-      register: minikube_status_output
-
-    - name: Verify Minikube cluster is running
-      assert:
-        that:
-          - "'Running' in minikube_status_output.stdout"
-        fail_msg: "Minikube cluster is not running"
-        success_msg: "Minikube cluster is running successfully"
-
-    - name: Display Minikube status
-      debug:
-        var: minikube_status_output.stdout
-
-    - name: Pull application Docker image
-      command: docker pull busybox
-
-    - name: Copy application deployment
-      copy:
-        src: "{{ playbook_dir }}/roles/deploy_app/templates/init-container-deployment.yaml"
-        dest: /home/{{ ansible_user }}/init-container-deployment.yaml
-
-    - name: Apply deployment configuration
-      command: kubectl apply -f /home/{{ ansible_user }}/init-container-deployment.yaml
-      args:
-        executable: /bin/bash
+- name: Install Helm
+  shell: |
+    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
