@@ -9,6 +9,7 @@
 
     - name: Add user to docker group
       command: usermod -aG docker {{ ansible_user }}
+      become: true
 
     - name: Apply docker group changes
       shell: newgrp docker
