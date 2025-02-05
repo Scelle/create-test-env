@@ -1,5 +1,4 @@
----
-- name: Install prerequisites
+- hosts: localhost
   tasks:
     - name: Install Docker
       shell: |
@@ -7,15 +6,12 @@
         sh get-docker.sh
       args:
         creates: /usr/bin/docker
-      become: true
 
     - name: Add user to docker group
       command: usermod -aG docker {{ ansible_user }}
-      become: true
 
     - name: Apply docker group changes
       shell: newgrp docker
-      become: true
 
     - name: Install kubectl
       shell: |
@@ -39,4 +35,60 @@
         curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
       args:
         creates: /usr/local/bin/helm
+
+    - name: Check if Minikube profile exists
+      command: minikube profile list
+      register: minikube_profile_list
+      ignore_errors: true
+      become: true
+
+    - name: Create Minikube profile if not exists
+      command: minikube profile minikube
+      when: "'minikube' not in minikube_profile_list.stdout"
+      become: true
+
+    - name: Check if Minikube cluster is already running
+      command: minikube status
+      register: minikube_status_output
+      ignore_errors: true
+      become: true
+
+    - name: Start Minikube cluster if not running
+      command: minikube start --driver=docker
+      when: "'Running' not in minikube_status_output.stdout"
+      register: minikube_start_output
+      args:
+        creates: /home/{{ ansible_user }}/.minikube
+      become: true
+
+    - name: Check Minikube status
+      command: minikube status
+      register: minikube_status_output
+      become: true
+
+    - name: Verify Minikube cluster is running
+      assert:
+        that:
+          - "'Running' in minikube_status_output.stdout"
+        fail_msg: "Minikube cluster is not running"
+        success_msg: "Minikube cluster is running successfully"
+
+    - name: Display Minikube status
+      debug:
+        var: minikube_status_output.stdout
+
+    - name: Pull application Docker image
+      command: docker pull busybox
+      become: true
+
+    - name: Copy application deployment
+      copy:
+        src: "{{ playbook_dir }}/roles/deploy_app/templates/init-container-deployment.yaml"
+        dest: /home/{{ ansible_user }}/init-container-deployment.yaml
+      become: true
+
+    - name: Apply deployment configuration
+      shell: kubectl apply -f /home/{{ ansible_user }}/init-container-deployment.yaml
+      args:
+        executable: /bin/bash
       become: true
