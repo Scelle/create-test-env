@@ -1,34 +1,36 @@
-- name: Install Docker
-  shell: |
-    curl -fsSL https://get.docker.com -o get-docker.sh
-    sh get-docker.sh
-  args:
-    creates: /usr/bin/docker
+- name: Install prerequisites
+  tasks:
+    - name: Install Docker
+      shell: |
+        curl -fsSL https://get.docker.com -o get-docker.sh
+        sh get-docker.sh
+      args:
+        creates: /usr/bin/docker
 
-- name: Add user to docker group
-  command: usermod -aG docker {{ ansible_user }}
-  become: true
+    - name: Add user to docker group
+      command: usermod -aG docker {{ ansible_user }}
+      become: true
 
-- name: Apply docker group changes
-  shell: newgrp docker
+    - name: Apply docker group changes
+      shell: newgrp docker
 
-- name: Install kubectl
-  shell: |
-    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-    sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-  args:
-    creates: /usr/local/bin/kubectl
+    - name: Install kubectl
+      shell: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+      args:
+        creates: /usr/local/bin/kubectl
 
-- name: Install Minikube
-  shell: |
-    curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-    sudo install minikube-linux-amd64 /usr/local/bin/minikube
-    rm minikube-linux-amd64
-  args:
-    creates: /usr/local/bin/minikube
+    - name: Install Minikube
+      shell: |
+        curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        sudo install minikube-linux-amd64 /usr/local/bin/minikube
+        rm minikube-linux-amd64
+      args:
+        creates: /usr/local/bin/minikube
 
-- name: Install Helm
-  shell: |
-    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-  args:
-    creates: /usr/local/bin/helm
+    - name: Install Helm
+      shell: |
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      args:
+        creates: /usr/local/bin/helm

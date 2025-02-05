@@ -1,18 +1,35 @@
-- name: Start Minikube cluster
-  shell: minikube start --driver=docker
-  become: no
-  args:
-    creates: /home/{{ ansible_user }}/.minikube
+- name: Deploy app in cluster
+  tasks:
+    - name: Start Minikube cluster
+      command: minikube start --driver=docker
+      register: minikube_start_output
+        args:
+          creates: /home/{{ ansible_user }}/.minikube
 
-# - name: Pull application Docker image
-#   shell: docker pull busybox
+    - name: Check Minikube status
+      command: minikube status
+      register: minikube_status_output
 
-# - name: Deploy application deployment
-#   copy:
-#     src: "{{ playbook_dir }}/roles/deploy_app/templates/init-container-deployment.yaml"
-#     dest: /home/{{ ansible_user }}/init-container-deployment.yaml
+    - name: Verify Minikube cluster is running
+      assert:
+        that:
+          - "'Running' in minikube_status_output.stdout"
+        fail_msg: "Minikube cluster is not running"
+        success_msg: "Minikube cluster is running successfully"
 
-# - name: Apply deployment configuration
-#   shell: kubectl apply -f /home/{{ ansible_user }}/init-container-deployment.yaml
-#   args:
-#     executable: /bin/bash
+    - name: Display Minikube status
+      debug:
+        var: minikube_status_output.stdout
+
+      - name: Pull application Docker image
+        command: docker pull busybox
+
+      - name: Copy application deployment
+        copy:
+          src: "{{ playbook_dir }}/roles/deploy_app/templates/init-container-deployment.yaml"
+          dest: /home/{{ ansible_user }}/init-container-deployment.yaml
+
+      - name: Apply deployment configuration
+        shell: kubectl apply -f /home/{{ ansible_user }}/init-container-deployment.yaml
+        args:
+          executable: /bin/bash
