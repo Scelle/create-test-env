@@ -1,4 +1,6 @@
+---
 - hosts: localhost
+  become: true
   tasks:
     - name: Install Docker
       shell: |
@@ -8,27 +10,28 @@
         creates: /usr/bin/docker
 
     - name: Add user to docker group
-      command: usermod -aG docker {{ ansible_user }}
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
 
     - name: Apply docker group changes
-      shell: newgrp docker
+      meta: flush_handlers
 
     - name: Install kubectl
       shell: |
         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-        sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+        install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
       args:
         creates: /usr/local/bin/kubectl
-      become: true
 
     - name: Install Minikube
       shell: |
         curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-        sudo install minikube-linux-amd64 /usr/local/bin/minikube
+        install minikube-linux-amd64 /usr/local/bin/minikube
         rm minikube-linux-amd64
       args:
         creates: /usr/local/bin/minikube
-      become: true
 
     - name: Install Helm
       shell: |
@@ -36,35 +39,15 @@
       args:
         creates: /usr/local/bin/helm
 
-    - name: Check if Minikube profile exists
-      command: minikube profile list
-      register: minikube_profile_list
-      ignore_errors: true
-      become: true
-
-    - name: Create Minikube profile if not exists
-      command: minikube profile minikube
-      when: "'minikube' not in minikube_profile_list.stdout"
-      become: true
-
-    - name: Check if Minikube cluster is already running
-      command: minikube status
-      register: minikube_status_output
-      ignore_errors: true
-      become: true
-
-    - name: Start Minikube cluster if not running
+    - name: Start Minikube cluster
       command: minikube start --driver=docker
-      when: "'Running' not in minikube_status_output.stdout"
       register: minikube_start_output
       args:
         creates: /home/{{ ansible_user }}/.minikube
-      become: true
 
     - name: Check Minikube status
       command: minikube status
       register: minikube_status_output
-      become: true
 
     - name: Verify Minikube cluster is running
       assert:
@@ -79,16 +62,13 @@
 
     - name: Pull application Docker image
       command: docker pull busybox
-      become: true
 
     - name: Copy application deployment
       copy:
         src: "{{ playbook_dir }}/roles/deploy_app/templates/init-container-deployment.yaml"
         dest: /home/{{ ansible_user }}/init-container-deployment.yaml
-      become: true
 
     - name: Apply deployment configuration
-      shell: kubectl apply -f /home/{{ ansible_user }}/init-container-deployment.yaml
+      command: kubectl apply -f /home/{{ ansible_user }}/init-container-deployment.yaml
       args:
         executable: /bin/bash
-      become: true
