@@ -1,0 +1,18 @@
+- name: Start Minikube
+  command: minikube start --driver=docker
+  register: minikube_start_output
+
+- name: Check Minikube status
+  command: minikube status
+  register: minikube_status_output
+
+- name: Debug Minikube status
+  debug:
+    var: minikube_status_output.stdout_lines
+
+- name: Verify Minikube cluster is running
+  assert:
+    that:
+      - "'Running' in minikube_status_output.stdout"
+    fail_msg: "Minikube cluster is not running"
+    success_msg: "Minikube cluster is running successfully"

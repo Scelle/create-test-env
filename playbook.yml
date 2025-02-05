@@ -1,4 +1,5 @@
 - hosts: localhost
   roles:
-    - install_tools
+    - install_prerequisites
+    - deploy_cluster
     - deploy_app
