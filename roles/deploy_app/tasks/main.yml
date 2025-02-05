@@ -4,15 +4,6 @@
   args:
     creates: /home/{{ ansible_user }}/.minikube
 
-- name: Wait for Minikube to be ready
-  wait_for:
-    timeout: 180  # 3 minutes
-
-- name: Set up Docker environment for Minikube
-  shell: eval $(minikube docker-env)
-  args:
-    executable: /bin/bash
-
 - name: Pull application Docker image
   shell: docker pull busybox
 
