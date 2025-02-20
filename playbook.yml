@@ -2,4 +2,4 @@
   roles:
     - install_prerequisites
     - deploy_cluster
-    - deploy_app
+#    - deploy_app
